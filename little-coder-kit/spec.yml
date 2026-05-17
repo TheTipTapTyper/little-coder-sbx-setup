@@ -23,4 +23,29 @@ agent:
   aiFilename: AGENTS.md
   persistence: persistent
   entrypoint:
-    run: ["little-coder", "--model", "llamacpp/qwen3.6-35b-a3b"]
+    run: ["little-coder", "--model", "llamacpp/qwen3.6-27b"]
+
+commands:
+  initFiles:
+    - path: /home/agent/.config/little-coder/models.json
+      content: |
+        {
+          "providers": {
+            "llamacpp": {
+              "api": "openai-completions",
+              "apiKey": "LLAMACPP_API_KEY",
+              "models": [
+                {
+                  "id": "qwen3.6-27b",
+                  "name": "Qwen3.6-27B (local llama.cpp, 262K)",
+                  "reasoning": true,
+                  "input": ["text"],
+                  "contextWindow": 262144,
+                  "maxTokens": 32768,
+                  "cost": { "input": 0, "output": 0, "cacheRead": 0, "cacheWrite": 0 }
+                }
+              ]
+            }
+          }
+        }
+      onlyIfMissing: false
