@@ -1,0 +1,26 @@
+schemaVersion: "1"
+kind: agent
+name: little-coder
+displayName: little-coder
+description: >
+  A Claude Code-inspired CLI coding agent that talks to a local
+  llama-server instance on the host via an OpenAI-compatible API.
+
+network:
+  allowedDomains:
+    - "host.docker.internal:8080"
+    - "github.com:443"
+    - "*.github.com:443"
+    - "objects.githubusercontent.com:443"
+
+environment:
+  variables:
+    LLAMACPP_BASE_URL: "http://host.docker.internal:8080/v1"
+    LLAMACPP_API_KEY: "noop"
+
+agent:
+  image: "docker.io/jmmartin397/little-coder-template:v1"
+  aiFilename: AGENTS.md
+  persistence: persistent
+  entrypoint:
+    run: ["little-coder", "--model", "llamacpp/qwen3.6-35b-a3b"]
