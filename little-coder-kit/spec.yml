@@ -17,9 +17,10 @@ environment:
   variables:
     LLAMACPP_BASE_URL: "http://host.docker.internal:8080/v1"
     LLAMACPP_API_KEY: "noop"
+    LITTLE_CODER_PERMISSION_MODE: "accept-all"
 
 agent:
-  image: "docker.io/jmmartin397/little-coder-template:v1"
+  image: "docker.io/jmmartin397/little-coder-template:latest"
   aiFilename: AGENTS.md
   persistence: persistent
   entrypoint:
@@ -37,10 +38,10 @@ commands:
               "models": [
                 {
                   "id": "qwen3.6-27b",
-                  "name": "Qwen3.6-27B (local llama.cpp, 262K)",
+                  "name": "Qwen3.6-27B (local llama.cpp, 220K)",
                   "reasoning": true,
                   "input": ["text"],
-                  "contextWindow": 262144,
+                  "contextWindow": 220000,
                   "maxTokens": 32768,
                   "cost": { "input": 0, "output": 0, "cacheRead": 0, "cacheWrite": 0 }
                 }

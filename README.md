@@ -42,8 +42,9 @@ Little Coder is a Claude Code-inspired CLI coding agent that talks to a local LL
 │  │  Docker Sandbox                           │   │
 │  │  ┌────────────────────────────────────┐   │   │
 │  │  │  little-coder agent                │   │   │
-│  │  │  (Python, git, npm, fd, curl)      │   │   │
-│  │  └────────────────────────────────────    │   │
+│  │  │  (Python, git, npm, fd, curl,      │   │   │
+│  │  │   pi-repo-baby)                    │   │   │
+│  │  └────────────────────────────────────┘   │   │
 │  └───────────────────────────────────────────┘   │
 └──────────────────────────────────────────────────┘
 ```
@@ -51,9 +52,10 @@ Little Coder is a Claude Code-inspired CLI coding agent that talks to a local LL
 The sandbox is configured via `little-coder-kit/spec.yml`:
 
 - **Network**: Access to `host.docker.internal:8080` (your LLM) and GitHub
-- **Environment**: `LLAMACPP_BASE_URL` points to the local LLM
-- **Entrypoint**: Runs `little-coder --model llamacpp/qwen3.6-35b-a3b`
+- **Environment**: `LLAMACPP_BASE_URL` points to the local LLM; `LITTLE_CODER_PERMISSION_MODE=accept-all` disables the bash whitelist (the sandbox is the security boundary)
+- **Entrypoint**: Runs `little-coder --model llamacpp/qwen3.6-27b`
 - **Persistence**: State is preserved across sessions
+- **Extensions**: Includes [pi-repo-baby](https://pi.dev/packages/pi-repo-baby) — the agent can call `read_codebase` to get a ranked structural map of any codebase via Tree-sitter
 
 ## Project Structure
 
@@ -69,11 +71,17 @@ The sandbox is configured via `little-coder-kit/spec.yml`:
 
 ## Updating the Sandbox Image
 
-To update the Docker image (e.g. after changes to the `Dockerfile`):
+The Dockerfile installs little-coder from npm, so it always pulls the latest release — no version pinning to update.
+
+To rebuild and push the image:
 
 ```bash
-./docker-build-push.sh
+./docker-build-push.sh jmmartin397
 ```
+
+This pushes two tags:
+- `v1` — always points to the latest build
+- `v1-YYYYMMDD` — immutable date-based tag for rollbacks
 
 For an existing sandbox to pick up the new image, delete and recreate it:
 
@@ -94,14 +102,22 @@ entrypoint:
   run: ["little-coder", "--model", "llamacpp/your-model-name"]
 ```
 
-### Adding Tools
+### Adding System Tools
 
-Edit the `Dockerfile` to install additional packages:
+Edit the `Dockerfile` to install additional system packages:
 
 ```dockerfile
 RUN apt-get update && apt-get install -y \
     your-package \
     && rm -rf /var/lib/apt/lists/*
+```
+
+### Adding pi Extensions
+
+Install additional [pi packages](https://pi.dev/packages) by adding them to the `npm install -g` line in the `Dockerfile`:
+
+```dockerfile
+RUN npm install -g little-coder pi-repo-baby pi-some-other-extension
 ```
 
 ### Changing the LLM Port

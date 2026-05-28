@@ -1,6 +1,5 @@
 FROM docker/sandbox-templates:shell
 
-# Install system deps as root
 USER root
 RUN apt-get update && apt-get install -y \
     python3 \
@@ -11,17 +10,21 @@ RUN apt-get update && apt-get install -y \
     build-essential \
     fd-find \
     && ln -s $(which fdfind) /usr/local/bin/fd \
+    && rm -rf /var/lib/apt/lists/* \
+    && pip install --break-system-packages tree-sitter-language-pack
+
+# Install Node 22 via NodeSource (cleaner than nvm in Docker)
+RUN curl -fsSL https://deb.nodesource.com/setup_22.x | bash - \
+    && apt-get install -y nodejs \
     && rm -rf /var/lib/apt/lists/*
 
-# Switch to agent user for user-level installs
-USER agent
-
-# Clone and install little-coder into the agent's home
+# Clone and install little-coder from source (latest main)
+# passing in a unique CACHEBUST value invalidates docker's cache for this and subsequent layers
 WORKDIR /home/agent
-RUN git clone https://github.com/itayinbarr/little-coder.git /home/agent/little-coder
+ARG CACHEBUST=1
+RUN git clone --depth 1 https://github.com/itayinbarr/little-coder.git /home/agent/little-coder
 
 WORKDIR /home/agent/little-coder
-RUN npm install && npm link
 
-# Make sure ~/.local/bin is on PATH
-ENV PATH="/home/agent/.local/bin:${PATH}"
+# npm link needs root to write to /usr/local/bin
+RUN npm install && npm link
